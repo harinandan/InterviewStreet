@@ -141,6 +141,7 @@ public class LuckyNumbers {
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 		int T = Integer.parseInt(br.readLine().trim());
 		MAXDIGITS = -1;
+		MINDIGITS = 18;
 		for (int i = 0; i < T; i++) {
 			String temp[] = br.readLine().trim().split(" ");
 			long A = Long.parseLong(temp[0]);
@@ -148,6 +149,8 @@ public class LuckyNumbers {
 			Range r = new Range(A,B);
 			if(MAXDIGITS < r.cDigitsInB)
 				MAXDIGITS = r.cDigitsInB;
+			if(MINDIGITS > r.cDigitsInA)
+				MINDIGITS = r.cDigitsInA;
 			ranges.add(r);
 		}
 		//long start = System.currentTimeMillis();
@@ -160,6 +163,7 @@ public class LuckyNumbers {
 	}
 
 	static final int MAX_SQUARE_SUM = 1458;
+	static int MINDIGITS = 1;
 	static int MAXDIGITS = 18;
 	static boolean primes[] = new boolean[1460];
 
@@ -183,6 +187,7 @@ public class LuckyNumbers {
 
 	static int sum, square_sum;
 	static String num = "";
+	static int numLen = 0;
 
 	static void backtrack(int startdigit, int ndigits, int maxdigit) {
 		ndigits++;
@@ -191,20 +196,26 @@ public class LuckyNumbers {
 			num += i;
 			sum += i;
 			square_sum += squares[i];
-			prime_checks++;
-			if (primes[sum] && primes[square_sum]) {
-				found++;
-	        	long l = Long.parseLong(num);
-	        	for(Range r: ranges)
-	        	{
-	        		r.add(l);
-	        	}
+			numLen += 1;
+			
+			if(numLen > MINDIGITS)
+			{
+				prime_checks++;
+				if (primes[sum] && primes[square_sum]) {
+					found++;
+		        	long l = Long.parseLong(num);
+		        	for(Range r: ranges)
+		        	{
+		        		r.add(l);
+		        	}
+				}
 			}
 			if (ndigits < MAXDIGITS)
 				backtrack(0, ndigits, i);
 			sum -= i;
 			square_sum -= squares[i];
 			num = num.substring(0, num.length() - 1);
+			numLen -= 1;
 		}
 	}
 

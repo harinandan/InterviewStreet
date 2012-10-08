@@ -1,36 +1,42 @@
 import java.io.*;
 import java.util.*;
 
-class Point
-{
-    long x;
-    long y;
-    boolean v = false;
-    
-    Point(long x, long y)
-    {
-        this.x = x;
-        this.y =y;
-    }
-    
-    long distance(Point p)
-    {
-        return Math.max(Math.abs(p.x-x),Math.abs(p.y-y));
-    }
-    
-    boolean equals(Point p)
-    {
-        return p.x == x && p.y == y; 
-    }
-    
-    void visit()
-    {
-        v = true;
-    }
-}
-
 public class MeetingPoint
 {
+	static class Point
+	{
+	    long x;
+	    long y;
+	    boolean v = false;
+	    
+	    Point(long x, long y)
+	    {
+	        this.x = x;
+	        this.y =y;
+	    }
+	    
+	    long distance(Point p)
+	    {
+	        return Math.max(Math.abs(p.x-x),Math.abs(p.y-y));
+	    }
+	    
+	    boolean equals(Point p)
+	    {
+	    	if(p == null) return false;
+	        return p.x == x && p.y == y; 
+	    }
+	    
+	    void visit()
+	    {
+	        v = true;
+	    }
+	    
+	    public String toString()
+	    {
+	    	return "[" + x+ "," + y + "]";
+	    }
+	}
+
     public static List<Point> findNearestNeighbours(List<Point> points, Point p)
     {
         List<Point> neighbours = new ArrayList<Point>();
@@ -38,17 +44,20 @@ public class MeetingPoint
         long distance = Long.MAX_VALUE;
         for(Point p1 : points)
         {
-            long p1distance = p.distance(p1);
-            if(p1distance < distance)
-            {
-                distance = p1distance;
-                neighbours.clear();
-                neighbours.add(p1);
-            }
-            if(p1distance == distance)
-            {
-                neighbours.add(p1);
-            }
+        	if(!p1.equals(p))
+        	{
+	            long p1distance = p.distance(p1);
+	            if(p1distance < distance)
+	            {
+	                distance = p1distance;
+	                neighbours.clear();
+	                neighbours.add(p1);
+	            }
+	            else if(p1distance == distance)
+	            {
+	                neighbours.add(p1);
+	            }
+        	}
         }          
         return neighbours;
     }
@@ -99,12 +108,16 @@ public class MeetingPoint
               List<Point> neighbours = findNearestNeighbours(points, center);
               for (Point neighbour: neighbours)
               {
-                  long neighbourTotalDistance = totalDistance(points, neighbour);
-                  if(neighbourTotalDistance < distance)
-                  {
-                      center = neighbour;
-                      distance = neighbourTotalDistance;
-                  }
+            	  if(!neighbour.v)
+            	  {
+	                  long neighbourTotalDistance = totalDistance(points, neighbour);
+	                  if(neighbourTotalDistance < distance)
+	                  {
+	                      center = neighbour;
+	                      distance = neighbourTotalDistance;
+	                  }
+	                  neighbour.visit();
+            	  }
               }
               if(center.equals(prevCenter))
                   break;

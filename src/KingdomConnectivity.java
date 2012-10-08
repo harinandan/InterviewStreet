@@ -53,14 +53,14 @@ public class KingdomConnectivity {
 				}
 				int paths = 0;
 				for (Map.Entry<Integer,Integer> entry : cur.parents.entrySet()) {
-					paths += nodes.get(entry.getKey()).paths * entry.getValue();
+					paths = (paths + nodes.get(entry.getKey()).paths * entry.getValue())%1000000000;
 				}
 				cur.paths = paths;
 			}
 			
 			if(tNode.paths != 0 && sNode.parents.get(sNode.nodeValue) != null)
 				return "INFINITE PATHS";
-			return ""+(tNode.paths%1000000000);
+			return ""+(tNode.paths);
 		}
 	}
 	enum VisitEnum{

@@ -1,143 +1,154 @@
-import java.util.BitSet;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Scanner;
+import java.util.*;
+
 
 public class KingdomConnectivity {
-	static enum Visit
-	{
+	static class Graph {
+		Map<Integer,Node> nodes = new HashMap<Integer,Node>();
+		
+		void addEdge(int S, int T)
+		{
+			Node sNode = nodes.get(S);
+			if(sNode == null)
+			{
+				sNode = new Node(S);
+				nodes.put(S, sNode);
+			}
+			Node tNode = nodes.get(T);
+			if(tNode == null)
+			{
+				tNode = new Node(T);
+				nodes.put(T, tNode);
+			}
+			sNode.addChild(T);
+			tNode.addParent(S);
+		}
+		
+		String countPaths(int S, int T)
+		{
+			Node sNode = nodes.get(S);
+			Node tNode = nodes.get(T);
+			
+			if(sNode == null || tNode == null)
+				return "0";
+			
+			tNode.pruneUnreachableNodes(this);
+			if(sNode.visit != VisitEnum.CAN_REACH_TARGET)
+				return "0";
+			
+			List<Node> sortedNodes = sNode.topologicalSort(this, new BitSet());
+			sortedNodes.remove(sNode);
+			sNode.paths = 1;
+			
+			for (int i = 0; i < sortedNodes.size();i++) {
+				Node cur = sortedNodes.get(i);
+				cur.position = i+1;
+			}
+			
+			for (int i = 0; i < sortedNodes.size();i++) {
+				Node cur = sortedNodes.get(i);
+				for (Integer child : cur.children.keySet()) {
+					Node childNode = nodes.get(child);
+					if(childNode.visit != VisitEnum.UNVISITED && childNode.position <= (i+1))
+						return "INFINITE PATHS";
+				}
+				int paths = 0;
+				/*
+				Integer c;
+				if( (c = sNode.children.get(cur.nodeValue)) != null)
+				{
+					paths = c;
+				}
+				*/
+				for (Map.Entry<Integer,Integer> entry : cur.parents.entrySet()) {
+					paths += nodes.get(entry.getKey()).paths * entry.getValue();
+				}
+				cur.paths = paths;
+			}
+			
+			if(tNode.paths != 0 && sNode.parents.get(sNode.nodeValue) != null)
+				return "INFINITE PATHS";
+			return ""+tNode.paths;
+		}
+	}
+	enum VisitEnum{
 		CAN_REACH_TARGET,
 		UNVISITED
 	}
 	static class Node
 	{
-		BitSet children = new BitSet();
-		BitSet parents = new BitSet();
-		Visit visit = Visit.UNVISITED;
-		int position;
+		int nodeValue;
+		
+		Map<Integer,Integer> children = new HashMap<Integer,Integer>();
+		Map<Integer,Integer> parents = new HashMap<Integer,Integer>();
+		
+		VisitEnum visit = VisitEnum.UNVISITED; 
 		int paths;
-
-		int node = 0;
-
-		int getNode()
+		int position;
+		
+		Node(int nodeValue)
 		{
-			return node;
-		}
-
-		void setNode(int node)
-		{
-			this.node = node;
-		}
-
-		List<Node> topologicalSort(BitSet visited)
-		{
-			visited.set(node);
-			LinkedList<Node> sortedNodes = new LinkedList<Node>();
-			for (int i = children.nextSetBit(0); i >= 0; i = children.nextSetBit(i+1)) {
-				if(!visited.get(i))
-					sortedNodes.addAll(0, graph.get(i).topologicalSort(visited));
-			}
-			sortedNodes.addFirst(this);
-
-
-			return sortedNodes;
+			this.nodeValue = nodeValue;
 		}
 		
-		void prune()
+		void addChild(int c)
 		{
-			visit = Visit.CAN_REACH_TARGET;
-			for (int i = parents.nextSetBit(0); i >= 0; i = parents.nextSetBit(i+1)) {
-				Node parent = graph.get(i);
-				if(parent.visit == Visit.UNVISITED)
-					parent.prune();
+			Integer cCount = children.get(c);
+			if(cCount == null)
+				children.put(c, 1);
+			else
+				children.put(c, cCount+1);
+		}
+		
+		void addParent(int p)
+		{
+			Integer pCount = parents.get(p);
+			if(pCount == null)
+				parents.put(p, 1);
+			else
+				parents.put(p, pCount+1);
+		}
+		
+		List<Node> topologicalSort(Graph g, BitSet visited)
+		{
+			LinkedList<Node> sorted = new LinkedList<Node>();
+			visited.set(nodeValue);
+			for (Integer child:children.keySet()) {
+				if(!visited.get(child))
+				{
+					sorted.addAll(0, g.nodes.get(child).topologicalSort(g, visited));
+				}
+			}
+			sorted.addFirst(g.nodes.get(nodeValue));
+			return sorted;
+		}
+		
+		void pruneUnreachableNodes(Graph g)
+		{
+			visit = VisitEnum.CAN_REACH_TARGET;
+			for(Integer parent:parents.keySet())
+			{
+				Node parentNode = g.nodes.get(parent);
+				if(parentNode.visit == VisitEnum.UNVISITED)
+					parentNode.pruneUnreachableNodes(g);
 			}
 		}
 		
 		@Override
 		public String toString() {
-			// TODO Auto-generated method stub
-			return "["+node+"("+visit+")"+"]";
+			return "["+nodeValue+"]";
 		}
 	}
-
-	static Map<Integer,Node> graph = new HashMap<Integer, Node>();
-
 	public static void main(String[] args) {
 		Scanner s = new Scanner(System.in);
-
+		Graph g = new Graph();
 		int N = s.nextInt();
 		int M = s.nextInt();
-
 		for (int i = 0; i < M; i++) {
 			int S = s.nextInt();
 			int T = s.nextInt();
-			Node sNode = graph.get(S);
-			if(sNode == null)
-			{
-				sNode = new Node();
-				sNode.setNode(S);
-				graph.put(S, sNode);
-			}
-			Node tNode = graph.get(T);
-			if(tNode == null)
-			{
-				tNode = new Node();
-				tNode.setNode(T);
-				graph.put(T, tNode);
-			}
-			sNode.children.set(T);
-			tNode.parents.set(S);
+			g.addEdge(S, T);
 		}
-		
-		
-		//System.out.println();
-		solve(N);
+		s.close();
+		System.out.println(g.countPaths(1, N));
 	}
-	static void solve(int N)
-	{
-		graph.get(N).prune();
-		if (!(graph.get(1).visit == Visit.CAN_REACH_TARGET))
-		{
-			System.out.println(0);
-			return;
-		}
-
-		List<Node> sorted = graph.get(1).topologicalSort(new BitSet());
-		int startPos = -1;
-		for(int i = 0; i <sorted.size();i++)
-		{
-			Node node = sorted.get(i);
-			node.position = i;
-			if(node.node == 1)
-			{
-				startPos = i;
-			}
-		}
-		Node init = sorted.get(startPos);
-		init.paths = 1;
-		for(int j = startPos+1; j <sorted.size();j++)
-		{
-			Node cur = sorted.get(j);
-			for (int i = cur.children.nextSetBit(0); i >= 0; i = cur.children.nextSetBit(i+1)) {
-				Node child = graph.get(i);
-				if(child.visit != Visit.UNVISITED && child.position <= j)
-				{
-					System.out.println("INFINITE PATHS");
-					return;
-				}
-			}
-			int paths = 0;
-			
-			for (int i = cur.parents.nextSetBit(0); i >= 0; i = cur.parents.nextSetBit(i+1)) {
-				Node prev = graph.get(i);
-				paths += prev.paths;
-			}
-			cur.paths = paths;
-		}
-		
-		System.out.println(graph.get(N).paths);
-	}
-
 }

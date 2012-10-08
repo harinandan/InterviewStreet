@@ -5,6 +5,7 @@ class Point
 {
     long x;
     long y;
+    boolean v = false;
     
     Point(long x, long y)
     {
@@ -21,10 +22,50 @@ class Point
     {
         return p.x == x && p.y == y; 
     }
+    
+    void visit()
+    {
+        v = true;
+    }
 }
 
 public class MeetingPoint
 {
+    public static List<Point> findNearestNeighbours(List<Point> points, Point p)
+    {
+        List<Point> neighbours = new ArrayList<Point>();
+        
+        long distance = Long.MAX_VALUE;
+        for(Point p1 : points)
+        {
+            long p1distance = p.distance(p1);
+            if(p1distance < distance)
+            {
+                distance = p1distance;
+                neighbours.clear();
+                neighbours.add(p1);
+            }
+            if(p1distance == distance)
+            {
+                neighbours.add(p1);
+            }
+        }          
+        return neighbours;
+    }
+    
+    public static long totalDistance(List<Point> points, Point center)
+    {
+        long distance = 0;
+        for(Point p : points)
+        {
+            if(!center.equals(p))
+            {
+                distance += center.distance(p);
+            }
+        }
+        
+        return distance;
+    }
     public static void main (String args[])
     {
       //  open up standard input
@@ -49,26 +90,26 @@ public class MeetingPoint
           mean.x /= N;
           mean.y /= N;
           
-          Point center = null;
+          Point center = mean;
+          Point prevCenter = mean;
           long distance = Long.MAX_VALUE;
-          for(Point p1 : points)
+          while(true)
           {
-              long p1distance = mean.distance(p1);
-              if(p1distance < distance)
+              prevCenter = center;
+              List<Point> neighbours = findNearestNeighbours(points, center);
+              for (Point neighbour: neighbours)
               {
-                  distance = p1distance;
-                  center = p1;
+                  long neighbourTotalDistance = totalDistance(points, neighbour);
+                  if(neighbourTotalDistance < distance)
+                  {
+                      center = neighbour;
+                      distance = neighbourTotalDistance;
+                  }
               }
-          }          
-          
-          distance = 0;
-          for(Point p2 : points)
-          {
-              if(!center.equals(p2))
-              {
-                  distance += center.distance(p2);
-              }
+              if(center.equals(prevCenter))
+                  break;
           }
+
           System.out.println(distance);
       } catch (IOException ioe) {
          System.out.println("IO error trying to read input!");

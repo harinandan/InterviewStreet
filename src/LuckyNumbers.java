@@ -2,6 +2,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class LuckyNumbers {
@@ -50,23 +51,77 @@ public class LuckyNumbers {
 			return digitCountInX;
 		}
 
+		
 		void add(long x)
 		{
+			long lBound = A;
+			long uBound = B;
+			short cDigitsInX = (short)(Math.log10(x)+1);
+
+			if(cDigitsInA < cDigitsInX)
+			{
+				lBound = (long) Math.pow(10, cDigitsInX-1);
+			}
+			
+			if(cDigitsInX < cDigitsInB)
+			{
+				uBound = (long) (Math.pow(10, cDigitsInX))-1;
+			}
+			
+			if(lBound > uBound)
+				return;
+
 			short dArrX[] = digitCount(x);
-			for (long i =A; i <= B;i++) {
-				boolean isLucky = true;
-				short dArrI[] = digitCount(i);
-				for (int j = 0; j < dArrX.length; j++) {
-					if(dArrI[j] != dArrX[j])
+			count += count(dArrX, uBound, digits(lBound), 0);
+		}
+		
+		long toLong(short num[])
+		{
+			long ret = 0;
+			int l = num.length;
+			for (int i = 0; i < num.length; i++) {
+				ret += num[l-i-1] * Math.pow(10, i);
+			}
+			
+			return ret;
+		}
+		
+		
+		
+		int count(short digits[], long U, short num[], int index) {
+			if (num.length-1 == index) {
+				int count = 0;
+				
+				for(; num[index] <=9 && toLong(num) <= U; num[index]++)
+				{
+					//System.out.println(Arrays.toString(num));
+					if(digits[num[index]] == 1)
 					{
-						isLucky = false;
-						break;
+						count++;
 					}
 				}
-				if(isLucky)
-					count++;
+				num[index] = 0;
+				
+				return count;
+			} else {
+				int count = 0;
+				
+				for(;num[index]<=9 && toLong(num) <= U;num[index]++)
+				{
+					//System.out.println(Arrays.toString(num));
+					if(digits[num[index]] != 0)
+					{
+						digits[num[index]]--;
+						count+=count(digits, U, num, index+1);
+						digits[num[index]]++;
+					}
+				}
+				num[index] = 0;
+				
+				return count;
 			}
 		}
+
 		void addold(long x)
 		{
 			long lBound = A;
@@ -104,7 +159,7 @@ public class LuckyNumbers {
 			long n = 1;
 			long d = 1;
 			for (i = 0; i < digitsInX.length; i++) {
-				int c = count(digitCountInX, digitsInL[i], digitsInU[i], i);
+				int c = countold(digitCountInX, digitsInL[i], digitsInU[i], i);
 				if(c == 0)
 					return;
 				else
@@ -120,7 +175,7 @@ public class LuckyNumbers {
 			count += (n/d);
 		}
 
-		private int count(short[] digitCountInX, short L,
+		private int countold(short[] digitCountInX, short L,
 				short U, int i) {
 			int total = 0;
 			for (int j = L; j <= U; j++) {
@@ -130,6 +185,11 @@ public class LuckyNumbers {
 			
 			total -= i;
 			return total;
+		}
+		
+		public String toString()
+		{
+			return "["+A+","+B+"]" + "("+count+")";
 		}
 		
 	}
@@ -207,6 +267,7 @@ public class LuckyNumbers {
 		        	for(Range r: ranges)
 		        	{
 		        		r.add(l);
+		        		//System.out.println(num+" : "+r);
 		        	}
 				}
 			}

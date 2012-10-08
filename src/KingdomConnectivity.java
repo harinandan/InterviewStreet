@@ -44,22 +44,21 @@ public class KingdomConnectivity {
 			connected.put(entry.getKey(), bs);
 		}
 		
-		int val = solve(1, N, new BitSet());
-		System.out.println(val == -1? "INFINITE PATHS" : (val % 1000000000));
+		int val = solve(1, N);
+		System.out.println(val == -1? "INFINITE PATHS" : val);
 	}
 
-	private static int solve(int S, int T, BitSet exclude) {
+	private static int solve(int S, int T) {
 		int ret = 0;
 
 		Stack<Integer> s = new Stack<Integer>();
 		Stack<BitSet> sVisited = new Stack<BitSet>();
-		Stack<List<Integer>> sPath = new Stack<List<Integer>>();
+		Stack<LinkedList<Integer>> sPath = new Stack<LinkedList<Integer>>();
 		s.push(S);
 		BitSet b = new BitSet();
 		b.set(S);
-		b.or(exclude);
 		sVisited.push(b);
-		List<Integer> path = new ArrayList<Integer>();
+		LinkedList<Integer> path = new LinkedList<Integer>();
 		path.add(S);
 		sPath.push(path);
 		while(!s.empty())
@@ -72,6 +71,7 @@ public class KingdomConnectivity {
 				if(i == T)
 				{
 					ret++;
+					ret %= 1000000000;
 					for (Integer j : path) {
 						BitSet bs = null;
 						if(((bs = connected.get(T)) != null) && bs.get(j))
@@ -87,7 +87,7 @@ public class KingdomConnectivity {
 						b.or(visited);
 						b.set(i);
 						sVisited.push(b);
-						List<Integer> newpath = new ArrayList<Integer>();
+						LinkedList<Integer> newpath = new LinkedList<Integer>();
 						newpath.addAll(path);
 						newpath.add(i);
 						sPath.push(newpath);
@@ -95,28 +95,19 @@ public class KingdomConnectivity {
 					}
 					else
 					{
-						LinkedList<Integer> newpath = new LinkedList<Integer>();
-						newpath.addAll(path);
-						while((newpath.peek()) != i)
-							newpath.poll();
+						while((path.peek()) != i)
+							path.poll();
 						//System.out.println("Cycle : " + newpath);
-						if(isCycleConnected(T, newpath))
-							return -1;
+						for (Integer j : path) {
+							BitSet bs = null;
+							if(((bs = connected.get(j)) != null) && bs.get(T))
+								return -1;
+						}
 					}
 				}
 			}
 		}
 
 		return ret;
-	}
-
-	private static boolean isCycleConnected(int T,LinkedList<Integer> cycle) {
-		for (Integer i : cycle) {
-			BitSet bs = null;
-			if(((bs = connected.get(i)) != null) && bs.get(T))
-				return true;
-		}
-		
-		return false;
 	}
 }

@@ -28,7 +28,7 @@ public class KingdomConnectivity {
 		}
 		
 		int val = solve(1, N, new BitSet());
-		System.out.println(val == -1? "INFINITE PATHS" : val);
+		System.out.println(val == -1? "INFINITE PATHS" : (val % 1000000000));
 	}
 
 	private static int solve(int S, int N, BitSet exclude) {

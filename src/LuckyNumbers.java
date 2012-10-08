@@ -1,19 +1,169 @@
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
 
 public class LuckyNumbers {
-	static final int MAX_LENGTH = 18;
-	static final int MAX_SUM = 162;
+	static class Range{
+		long A;
+		long B;
+		short cDigitsInA;
+		short cDigitsInB;
+		
+		long count;
+		
+		Range(long A, long B)
+		{
+			this.A=A;
+			this.B=B;
+			cDigitsInA = (short)(Math.log10(A)+1);
+			cDigitsInB = (short)(Math.log10(B)+1);
+		}
+
+		short[] digits(long x)
+		{
+			short cDigitsInX = (short)(Math.log10(x)+1);
+			short [] dArr = new short[cDigitsInX];
+			int i = cDigitsInX;
+			while(i-- > 0)
+			{
+				short digit = (short)(x%10);
+				x /= 10;
+				dArr[i] = digit;
+			}
+			
+			return dArr;
+		}
+		
+		short[] digitCount(long x)
+		{
+			short digitCountInX[] = new short[10];
+			int i = (short)(Math.log10(x)+1);
+			while(i-- > 0)
+			{
+				short digit = (short)(x%10);
+				digitCountInX[digit]++;
+				x /= 10;
+			}
+			
+			return digitCountInX;
+		}
+
+		void add(long x)
+		{
+			short dArrX[] = digitCount(x);
+			for (long i =A; i <= B;i++) {
+				boolean isLucky = true;
+				short dArrI[] = digitCount(i);
+				for (int j = 0; j < dArrX.length; j++) {
+					if(dArrI[j] != dArrX[j])
+					{
+						isLucky = false;
+						break;
+					}
+				}
+				if(isLucky)
+					count++;
+			}
+		}
+		void addold(long x)
+		{
+			long lBound = A;
+			long uBound = B;
+			short cDigitsInX = (short)(Math.log10(x)+1);
+
+			if(cDigitsInA < cDigitsInX)
+			{
+				lBound = (long) Math.pow(10, cDigitsInX-1);
+			}
+			
+			if(cDigitsInX < cDigitsInB)
+			{
+				uBound = (long) (Math.pow(10, cDigitsInX))-1;
+			}
+			
+			if(lBound > uBound)
+				return;
+			
+			short digitCountInX[] = new short[10];
+			boolean digitProcessedInX[] = new boolean[10];
+			short[] digitsInX = new short[cDigitsInX];
+			int i = cDigitsInX;
+			while(i-- > 0)
+			{
+				short digit = (short)(x%10);
+				digitCountInX[digit]++;
+				digitsInX[i] = digit;
+				x /= 10;
+			}
+			
+			short[] digitsInL = digits(lBound);
+			short[] digitsInU = digits(uBound);
+			
+			long n = 1;
+			long d = 1;
+			for (i = 0; i < digitsInX.length; i++) {
+				int c = count(digitCountInX, digitsInL[i], digitsInU[i], i);
+				if(c == 0)
+					return;
+				else
+				{
+					n *= c;
+					if(!digitProcessedInX[digitsInX[i]])
+					{
+						d *= digitCountInX[digitsInX[i]];
+						digitProcessedInX[digitsInX[i]] = true;
+					}
+				}
+			}
+			count += (n/d);
+		}
+
+		private int count(short[] digitCountInX, short L,
+				short U, int i) {
+			int total = 0;
+			for (int j = L; j <= U; j++) {
+				if(digitCountInX[j] != 0)
+				total += digitCountInX[j];
+			}
+			
+			total -= i;
+			return total;
+		}
+		
+	}
+	
+
+	static List<Range> ranges = new ArrayList<Range>();
+	public static void main(String[] args) throws NumberFormatException, IOException {
+		genPrimes();
+		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+		int T = Integer.parseInt(br.readLine().trim());
+		MAXDIGITS = -1;
+		for (int i = 0; i < T; i++) {
+			String temp[] = br.readLine().trim().split(" ");
+			long A = Long.parseLong(temp[0]);
+			long B = Long.parseLong(temp[1]);
+			Range r = new Range(A,B);
+			if(MAXDIGITS < r.cDigitsInB)
+				MAXDIGITS = r.cDigitsInB;
+			ranges.add(r);
+		}
+		//long start = System.currentTimeMillis();
+		backtrack(1, 0, 9);
+		for (Range r : ranges) {
+			System.out.println(r.count);
+		}
+		//System.out.println("did "+prime_checks+" signature checks, found "+found+" lucky signatures");
+		//System.out.println((System.currentTimeMillis()-start));
+	}
+
 	static final int MAX_SQUARE_SUM = 1458;
+	static int MAXDIGITS = 18;
 	static boolean primes[] = new boolean[1460];
-	static long dyn_table[][][] = new long[20][164][1461];
-	static long ans[][][][] = new long[19][10][164][1461]; // about 45 MB
 
-	static int start[][] = new int[19][163];
-	static int end[][] = new int[19][163];
-
-	static void gen_primes() {
+	static void genPrimes() {
 		for (int i = 0; i <= MAX_SQUARE_SUM; ++i) {
 			primes[i] = true;
 		}
@@ -29,104 +179,34 @@ public class LuckyNumbers {
 		}
 	}
 
-	static void gen_table() {
-		for (int i = 0; i <= MAX_LENGTH; ++i) {
-			for (int j = 0; j <= MAX_SUM; ++j) {
-				for (int k = 0; k <= MAX_SQUARE_SUM; ++k) {
-					dyn_table[i][j][k] = 0;
-				}
-			}
-		}
-		dyn_table[0][0][0] = 1;
+	static int prime_checks, found;
 
-		for (int i = 0; i < MAX_LENGTH; ++i) {
-			for (int j = 0; j <= 9 * i; ++j) {
-				for (int k = 0; k <= 9 * 9 * i; ++k) {
-					for (int l = 0; l < 10; ++l) {
-						dyn_table[i + 1][j + l][k + l * l] += dyn_table[i][j][k];
-					}
-				}
+	static int sum, square_sum;
+	static String num = "";
+
+	static void backtrack(int startdigit, int ndigits, int maxdigit) {
+		ndigits++;
+
+		for (int i = startdigit; i <= maxdigit; i++) {
+			num += i;
+			sum += i;
+			square_sum += squares[i];
+			prime_checks++;
+			if (primes[sum] && primes[square_sum]) {
+				found++;
+	        	long l = Long.parseLong(num);
+	        	for(Range r: ranges)
+	        	{
+	        		r.add(l);
+	        	}
 			}
+			if (ndigits < MAXDIGITS)
+				backtrack(0, ndigits, i);
+			sum -= i;
+			square_sum -= squares[i];
+			num = num.substring(0, num.length() - 1);
 		}
 	}
 
-	static long count_lucky(long maxp) {
-		long result = 0;
-		int len = 0;
-		int split_max[] = new int[MAX_LENGTH];
-		while (maxp > 0) {
-			split_max[len] = (int) (maxp % 10);
-			maxp /= 10;
-			++len;
-		}
-		int sum = 0;
-		int sq_sum = 0;
-		long step_result;
-		long step_;
-		for (int i = len - 1; i >= 0; --i) {
-			step_result = 0;
-			int x1 = 9 * i;
-			for (int l = 0; l < split_max[i]; ++l) {
-				step_ = 0;
-				if (ans[i][l][sum][sq_sum] != 0) {
-					step_result += ans[i][l][sum][sq_sum];
-					continue;
-				}
-				int y = l + sum;
-				int x = l * l + sq_sum;
-				for (int j = 0; j <= x1; ++j) {
-					if (primes[j + y])
-						for (int k = start[i][j]; k <= end[i][j]; ++k) {
-							if (primes[k + x]) {
-								step_result += dyn_table[i][j][k];
-								step_ += dyn_table[i][j][k];
-							}
-						}
-
-				}
-				ans[i][l][sum][sq_sum] = step_;
-			}
-			result += step_result;
-			sum += split_max[i];
-			sq_sum += split_max[i] * split_max[i];
-		}
-
-		if (primes[sum] && primes[sq_sum]) {
-			++result;
-		}
-
-		return result;
-	}
-
-	public static void main(String[] args) throws NumberFormatException,
-			IOException {
-		gen_primes();
-		gen_table();
-		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-
-		for (int i = 0; i <= 18; i++)
-			for (int j = 0; j <= 163; j++) {
-				for (int k = 0; k <= 1458; k++)
-					if (dyn_table[i][j][k] != 0l) {
-						start[i][j] = k;
-						break;
-					}
-
-				for (int k = 1460; k >= 0; k--)
-					if (dyn_table[i][j][k] != 0l) {
-						end[i][j] = k;
-						break;
-					}
-			}
-		int T = Integer.parseInt(br.readLine().trim());
-		for (int i = 0; i < T; i++) {
-			String temp[] = br.readLine().trim().split(" ");
-			long A = Long.parseLong(temp[0]);
-			long B = Long.parseLong(temp[1]);
-
-			System.out.println(count_lucky(B) - count_lucky(A - 1));
-		}
-
-	}
-
+	static final int squares[] = { 0, 1, 4, 9, 16, 25, 36, 49, 64, 81 };
 }

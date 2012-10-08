@@ -1,84 +1,102 @@
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
+import java.util.Scanner;
+import java.util.Stack;
+
+
 
 public class KingdomConnectivity {
+	static Map<Integer,BitSet> graph = new HashMap<Integer, BitSet>();
+	public static void main(String[] args) {
+		Scanner scanner = new Scanner(System.in);
+		int N = scanner.nextInt();
+		int M = scanner.nextInt();
+		for (int i = 0; i < M; i++) {
+			int S = scanner.nextInt();
+			int T = scanner.nextInt();
+			BitSet edges = graph.get(S);
+			if(edges==null)
+			{
+				edges = new BitSet();
+				graph.put(S, edges);
+			}
+			edges.set(T);
+		}
+		
+		int val = solve(1, N, new BitSet());
+		System.out.println(val == -1? "INFINITE PATHS" : val);
+	}
 
-	static int count(int N, Map<Integer, BitSet> edges) {
-		Queue<Integer> q = new LinkedList<Integer>();
-		Queue<BitSet> pathq = new LinkedList<BitSet>();
-		List<BitSet> paths = new ArrayList<BitSet>();
-		List<BitSet> cycles = new ArrayList<BitSet>();
-		int count = 0;
-		q.add(1);
-		BitSet p = new BitSet();
-		p.set(1);
-		pathq.add(p);
-		while (!q.isEmpty()) {
-			int t = q.poll();
-			p = pathq.poll();
-			if (t == N) {
-				// System.out.println(p);
-				paths.add(p);
-				count++;
-			} else {
-				BitSet s = edges.get(t);
-				if (s != null) {
-					for (int i = s.nextSetBit(0); i >= 0; i = s.nextSetBit(i + 1)) {
-						if (p.get(i)) {
-							// System.out.println("Cycle detected : " + p);
-							cycles.add(p);
-							continue;
+	private static int solve(int S, int N, BitSet exclude) {
+		int ret = 0;
+
+		Stack<Integer> s = new Stack<Integer>();
+		Stack<BitSet> sVisited = new Stack<BitSet>();
+		Stack<List<Integer>> sPath = new Stack<List<Integer>>();
+		s.push(S);
+		BitSet b = new BitSet();
+		b.set(S);
+		sVisited.push(b);
+		List<Integer> path = new ArrayList<Integer>();
+		path.add(1);
+		sPath.push(path);
+		while(!s.empty())
+		{
+			BitSet edges = graph.get(s.pop());
+			BitSet visited = sVisited.pop(); 
+			path = sPath.pop();
+			for (int i = edges.nextSetBit(0); i >= 0; i = edges.nextSetBit(i+1)) {
+				if(i == N)
+					ret++;
+				else
+				{
+					if(!visited.get(i))
+					{
+						if(!exclude.get(i))
+						{
+							s.push(i);
+							b = new BitSet();
+							b.or(visited);
+							b.set(i);
+							sVisited.push(b);
+							List<Integer> newpath = new ArrayList<Integer>();
+							newpath.addAll(path);
+							newpath.add(i);
+							sPath.push(newpath);
+							//System.out.println(newpath);
 						}
-						q.add(i);
-						BitSet p1 = new BitSet();
-						p1.or(p);
-						p1.set(i);
-						pathq.add(p1);
+					}
+					else
+					{
+						LinkedList<Integer> newpath = new LinkedList<Integer>();
+						newpath.addAll(path);
+						while((newpath.peek()) != i)
+							newpath.poll();
+						//System.out.println("Cycle : " + newpath);
+						if(isCycleConnected(N, newpath))
+							return -1;
 					}
 				}
 			}
 		}
 
-		for (BitSet cycle : cycles) {
-			for (BitSet path : paths) {
-				int cardinality = cycle.cardinality();
-				cycle.and(path);
-				if (cycle.cardinality() == cardinality)
-					return -1;
-			}
-		}
-		return count;
+		return ret;
 	}
 
-	public static void main(String[] args) throws NumberFormatException,
-			IOException {
-		Map<Integer, BitSet> edges = new HashMap<Integer, BitSet>();
-		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-		String temp[] = br.readLine().trim().split(" ");
-		int N = Integer.parseInt(temp[0]);
-		int M = Integer.parseInt(temp[1]);
-		for (int i = 0; i < M; i++) {
-			temp = br.readLine().trim().split(" ");
-			int C1 = Integer.parseInt(temp[0].trim());
-			int C2 = Integer.parseInt(temp[1].trim());
-			BitSet s = edges.get(C1);
-			if (s == null) {
-				s = new BitSet();
-				edges.put(C1, s);
-			}
-			s.set(C2);
+	private static boolean isCycleConnected(int N,LinkedList<Integer> cycle) {
+		BitSet b = new BitSet();
+		for (Integer i : cycle) {
+			b.set(i);
 		}
-
-		int count = count(N, edges);
-		System.out.println((count > 0 ? count : "INFINITE PATHS"));
+		for (Integer i : cycle) {
+			if(solve(i, N, b) != 0)
+				return true;
+		}
+		
+		return false;
 	}
-
 }

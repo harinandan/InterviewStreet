@@ -21,6 +21,7 @@ public class UnfriendlyNumbers {
 		List<BigInteger> ret = new LinkedList<BigInteger>();
 		// BigInteger KBY2 = K.divide(TWO);
 		BigInteger KSQRT = sqrt(K);
+		KSQRT.add(BigInteger.ONE);
 
 		for (BigInteger i = new BigInteger("2"); i.compareTo(KSQRT) <= 0; i = i
 				.add(BigInteger.ONE)) {

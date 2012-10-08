@@ -25,15 +25,26 @@ public class LuckyNumbers {
 			long temp = i;
 			long sumDigits = 0;
 			long sumSqrsDigits = 0;
+			byte[] digits = new byte[20];
+			int j = 0;
 			while(temp > 0)
 			{
-				long R = temp%10;
-				sumDigits += R;
-				sumSqrsDigits += R * R;
+				digits[j++] = (byte)(temp%10);
 				temp /=10;
 			}
-			if(isPrime(sumDigits) && isPrime(sumSqrsDigits))
-				count++;
+			int maxj = j;
+			
+			for (j = maxj-1; j >= 0; j--) {
+				sumDigits += digits[j];
+			}
+			if(isPrime(sumDigits))
+			{
+				for (j = maxj-1; j >= 0; j--) {
+					sumSqrsDigits += digits[j] * digits[j];
+				}
+				if(isPrime(sumSqrsDigits))
+					count++;
+			}
 				
 		}
 		

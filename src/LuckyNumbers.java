@@ -3,6 +3,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 
 public class LuckyNumbers {
+    static byte squares[] = {0, 1, 4, 9, 16, 25, 36, 49, 64, 81};
 	static boolean isPrime(long n) {
 		if (n < 2)
 			return false;
@@ -40,7 +41,7 @@ public class LuckyNumbers {
 			if(isPrime(sumDigits))
 			{
 				for (j = maxj-1; j >= 0; j--) {
-					sumSqrsDigits += digits[j] * digits[j];
+					sumSqrsDigits += squares[digits[j]];
 				}
 				if(isPrime(sumSqrsDigits))
 					count++;

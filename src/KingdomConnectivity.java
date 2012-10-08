@@ -52,13 +52,6 @@ public class KingdomConnectivity {
 						return "INFINITE PATHS";
 				}
 				int paths = 0;
-				/*
-				Integer c;
-				if( (c = sNode.children.get(cur.nodeValue)) != null)
-				{
-					paths = c;
-				}
-				*/
 				for (Map.Entry<Integer,Integer> entry : cur.parents.entrySet()) {
 					paths += nodes.get(entry.getKey()).paths * entry.getValue();
 				}
@@ -67,7 +60,7 @@ public class KingdomConnectivity {
 			
 			if(tNode.paths != 0 && sNode.parents.get(sNode.nodeValue) != null)
 				return "INFINITE PATHS";
-			return ""+tNode.paths;
+			return ""+(tNode.paths%1000000000);
 		}
 	}
 	enum VisitEnum{

@@ -3,20 +3,29 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 
 public class LuckyNumbers {
-    static byte squares[] = {0, 1, 4, 9, 16, 25, 36, 49, 64, 81};
-	static boolean isPrime(long n) {
+	static boolean[] isComposite;
+	public static void runEratosthenesSieve(int upperBound) {
+	      int upperBoundSquareRoot = (int) Math.sqrt(upperBound);
+	      isComposite = new boolean[upperBound + 1];
+	      for (int m = 2; m <= upperBoundSquareRoot; m++) {
+	            if (!isComposite[m]) {
+	                  //System.out.print(m + " ");
+	                  for (int k = m * m; k <= upperBound; k += m)
+	                        isComposite[k] = true;
+	            }
+	      }
+	      /*
+	      for (int m = upperBoundSquareRoot; m <= upperBound; m++)
+	            if (!isComposite[m])
+	                  System.out.print(m + " ");
+	                  */
+	}
+
+	static byte squares[] = {0, 1, 4, 9, 16, 25, 36, 49, 64, 81};
+	static boolean isPrime(int n) {
 		if (n < 2)
 			return false;
-		if (n == 2 || n == 3)
-			return true;
-		if (n % 2 == 0 || n % 3 == 0)
-			return false;
-		long sqrtN = (long) Math.sqrt(n) + 1;
-		for (long i = 6L; i <= sqrtN; i += 6) {
-			if (n % (i - 1) == 0 || n % (i + 1) == 0)
-				return false;
-		}
-		return true;
+		return !isComposite[n];
 	}
 	
 	static long solve(long A, long B)
@@ -24,8 +33,8 @@ public class LuckyNumbers {
 		long count = 0;
 		for (long i = A; i <= B; i++) {
 			long temp = i;
-			long sumDigits = 0;
-			long sumSqrsDigits = 0;
+			int sumDigits = 0;
+			int sumSqrsDigits = 0;
 			byte[] digits = new byte[20];
 			int j = 0;
 			while(temp > 0)
@@ -61,6 +70,7 @@ public class LuckyNumbers {
 			String temp [] = br.readLine().trim().split(" ");
 			long A = Long.parseLong(temp[0]);
 			long B = Long.parseLong(temp[1]);
+			runEratosthenesSieve((int)Math.log10(B)*81);
 			System.out.println(solve(A,B));
 		}
 	

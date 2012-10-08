@@ -19,13 +19,7 @@ class Point
     
     boolean equals(Point p)
     {
-        if(p == null) return false;
         return p.x == x && p.y == y; 
-    }
-    
-    public String toString()
-    {
-        return "["+x+","+y+"]";
     }
 }
 
@@ -40,124 +34,46 @@ public class MeetingPoint
       //  read the username from the command-line; need to use try/catch with the
       //  readLine() method
       try {
-          int N = Integer.parseInt(br.readLine());
-          Point [] pointsx = new Point[N];
-          Point [] pointsy = new Point[N];
+          List<Point> points = new ArrayList<Point>();
+          Point mean = new Point(0, 0);
+          long N = Long.parseLong(br.readLine());
           for ( int i = 0; i < N ;i++)
           {
               String line = br.readLine();
               String coordinates[] = line.split(" ");
               Point p = new Point(Long.parseLong(coordinates[0]),Long.parseLong(coordinates[1]));
-              pointsx[i] = p;
-              pointsy[i] = p;
+              points.add(p);
+              mean.x += p.x; 
+              mean.y += p.y;
           }
+          mean.x /= N;
+          mean.y /= N;
           
-          Arrays.sort(pointsx, new Comparator<Point>()
-                      {
-                          public int compare(Point o1, Point o2) 
-                          {
-                              if(o1.x < o2.x)
-                                  return -1;
-                              else if (o1.x > o2.x)
-                                  return 1;
-                              else
-                              {
-                                  if(o1.y < o2.y)
-                                      return -1;
-                                  else if (o1.y > o2.y)
-                                      return 1;
-                                  else
-                                      return 0;
-                              }
-                          }
-                      });
-          Arrays.sort(pointsy, new Comparator<Point>()
-                      {
-                          public int compare(Point o1, Point o2) 
-                          {
-                              if(o1.y < o2.y)
-                                  return -1;
-                              else if (o1.y > o2.y)
-                                  return 1;
-                              else
-                              {
-                                  if(o1.x < o2.x)
-                                      return -1;
-                                  else if (o1.x > o2.x)
-                                      return 1;
-                                  else
-                                      return 0;
-                              }
-                          }
-                      });
-          Point p1 = null;
-          Point p2 = null;
+          Point center = null;
+          long distance = Long.MAX_VALUE;
+          for(Point p1 : points)
+          {
+              long p1distance = mean.distance(p1);
+              if(p1distance < distance)
+              {
+                  distance = p1distance;
+                  center = p1;
+              }
+          }          
           
-          
-          int i = 0;
-          int j = 0;
-          if(N%2 == 0)
+          distance = 0;
+          for(Point p2 : points)
           {
-              i = N/2 - 1;
-              j = N/2;
-          }
-          else
-          {
-              if(pointsx[N/2].equals(pointsy[N/2]))
+              if(!center.equals(p2))
               {
-                  i = N/2;
-                  j = N/2;
-              }
-              else
-              {
-                  i = N/2 - 1;
-                  j = N/2 + 1;
+                  distance += center.distance(p2);
               }
           }
-          for(;i>=0;i--,j++)
-          {
-              if(pointsx[i].equals(pointsy[i]))
-              {
-                  p1 = pointsx[i];
-                  if(pointsx[j].equals(pointsy[j]))
-                  {
-                      p2 = pointsx[j];
-                  }
-                  break;
-              }
-              if(pointsx[j].equals(pointsy[j]))
-              {
-                  p2 = pointsx[j];
-                  break;
-              }
-          }
-              
-          long minDistancep1 = Long.MAX_VALUE;
-          long minDistancep2 = Long.MAX_VALUE;
-          if(p1 != null)
-          {
-              minDistancep1 = distance(p1, pointsx);
-          }
-          if (p2 != null && !p2.equals(p1))
-          {
-              minDistancep2 = distance(p2, pointsx);
-          }
-
-          System.out.println(Math.min(minDistancep1 ,minDistancep2));
+          System.out.println(distance);
       } catch (IOException ioe) {
          System.out.println("IO error trying to read input!");
          System.exit(1);
       }
 
-    }
-    
-    public static long distance(Point p1, Point[] points)
-    {
-        long dist = 0;
-        for(Point p: points)
-        {
-            dist += p1.distance(p);
-        }
-        return dist;
     }
 }

@@ -25,9 +25,9 @@ class Node
 		this.right = right;
 	}
 
-	boolean indexInRange(int p, int q)
+	boolean indexInRange(BitSet set)
 	{
-		return !index.get(p, q+1).isEmpty();
+		return index.intersects(set);
 	}
 	void setIndex(int i)
 	{
@@ -47,6 +47,8 @@ public class XORkey {
 			printBits(~m);
 			printBits(m);
 		}
+		BitSet range = new BitSet();
+		range.set(p, q+1);
 		Node node = pRoot;
 
 		for (int i = 15; i >= 0; i--) {
@@ -54,7 +56,7 @@ public class XORkey {
 
 			if (bit != 0) {
 				if (node.right != null) {
-					if(node.right.indexInRange(p, q))
+					if(node.right.indexInRange(range))
 						node = node.right;
 					else
 						node = node.left;
@@ -63,7 +65,7 @@ public class XORkey {
 				}
 			} else {
 				if (node.left != null) {
-					if(node.left.indexInRange(p, q))
+					if(node.left.indexInRange(range))
 						node = node.left;
 					else
 						node = node.right;
@@ -153,6 +155,7 @@ public class XORkey {
 			IOException {
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 		int T = Integer.parseInt(br.readLine().trim());
+		long start = System.currentTimeMillis();
 		for (int i = 0; i < T; i++) {
 
 			String[] temp = br.readLine().trim().split(" ");
@@ -175,5 +178,7 @@ public class XORkey {
 				System.out.println(a ^ x[bestMatch(root, ~a, p-1, q-1)]);
 			}
 		}
+		if(debug)
+		System.out.println("Time : "+(System.currentTimeMillis() - start));
 	}
 }

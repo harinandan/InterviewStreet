@@ -49,6 +49,7 @@ public class KingdomConnectivity {
 			BitSet edges = graph.get(s.pop());
 			BitSet visited = sVisited.pop(); 
 			path = sPath.pop();
+			if(edges != null)
 			for (int i = edges.nextSetBit(0); i >= 0; i = edges.nextSetBit(i+1)) {
 				if(i == N)
 					ret++;

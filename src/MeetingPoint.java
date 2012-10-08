@@ -49,7 +49,12 @@ public class MeetingPoint
 
 			@Override
 			public int compare(Point o1, Point o2) {
-				return (int) (o1.x - o2.x);
+				if (o1.x < o2.x)
+					return -1;
+				else if (o1.x > o2.x)
+					return 1;
+				else
+					return 0;
 			}
 		});
 		long L[] = new long[points.size()+1];
@@ -75,7 +80,12 @@ public class MeetingPoint
 
 			@Override
 			public int compare(Point o1, Point o2) {
-				return (int) (o1.y - o2.y);
+				if (o1.y < o2.y)
+					return -1;
+				else if (o1.y > o2.y)
+					return 1;
+				else
+					return 0;
 			}
 		});
 		long L[] = new long[points.size()+1];
